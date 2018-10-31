@@ -97,9 +97,8 @@ class BDTieba_All:
 			pid_urls = None
 			pid_urls = self.get_posturl(page_html)
 			# Check None
-			if pid_urls == None:
-				continue
-			self.posturls.update(pid_urls)
+			if pid_urls != None:
+				self.posturls.update(pid_urls)
 			
 			# 下一页
 			tail = None
