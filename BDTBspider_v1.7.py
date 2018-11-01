@@ -66,6 +66,11 @@ class Tool:
 			print("\nConnect to "+ url +" failed")
 			print(msgtxt)
 			print(e.reason)
+			
+	def validate_title(self, title):
+		rstr = r"[\/\\\:\*\?\"\<\>\|]"  # '/ \ : * ? " < > |'
+		new_title = re.sub(rstr, "", title)  # 删除
+		return new_title
 
 class BDTieba_All:
 
@@ -336,11 +341,13 @@ class OutputFile:
 		self.user          = ""
 		
 	# 打开txt文件
-	def open_file(self, title, mode="w+"):
+	def open_file(self, filepath, title, mode="w+"):
+		tool = Tool()
+		title = tool.validate_title(title)
 		if title:
-			self.file = open(title + ".txt", mode, encoding='utf-8')
+			self.file = open(filepath + "/" + title + ".txt", mode, encoding='utf-8')
 		else:
-			self.file = open(self.default_title, mode, encoding='utf-8')
+			self.file = open(filepath + "/" + self.default_title + ".txt", mode, encoding='utf-8')
 			
 	# 写入文件
 	def write_file(self, leng, filedata, question_num='0'):
@@ -407,7 +414,7 @@ class Application_ui(Frame):
 		Frame.__init__(self, master)
 		self.master.title('百度贴吧爬虫 v1.7')
 		self.master.geometry('500x300')
-		self.filepath = os.getcwd()
+		self.filepath = re.sub(r"\\", "/", os.getcwd())
 		self.createWidgets()
 
 	def createWidgets(self):
@@ -671,7 +678,7 @@ class Application_ui(Frame):
 				leng = len(filedata.postno)
 				if self.choice_save == False:
 					# 分贴保存
-					outputfile.open_file(self.filepath+'/'+title)
+					outputfile.open_file(self.filepath, title)
 					outputfile.file.write("楼层No"   + "\t" +
 										  "楼中楼No" + "\t" +
 										  "内容"     + "\t" +
@@ -680,7 +687,7 @@ class Application_ui(Frame):
 					outputfile.write_file(leng,filedata)
 				else:
 					# 保存到1个文件
-					outputfile.open_file(self.filepath+'/'+self.keyword, "a+")
+					outputfile.open_file(self.filepath, self.keyword, "a+")
 					outputfile.file.write("楼层No"   + "\t" +
 										  "楼中楼No" + "\t" +
 										  "内容"     + "\t" +
