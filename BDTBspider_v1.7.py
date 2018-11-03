@@ -82,7 +82,7 @@ class BDTieba_All:
 		# 问号以前的url
 		self.FRONT_URL  = "https://tieba.baidu.com/f"
 		# 所有帖子的url不重复
-		self.posturls   = set()
+		self.posturls   = []
 		# 引用共通方法
 		self.tool       = Tool()  
 		
@@ -103,7 +103,7 @@ class BDTieba_All:
 			pid_urls = self.get_posturl(page_html)
 			# Check None
 			if pid_urls != None:
-				self.posturls.update(pid_urls)
+				self.posturls.extend(pid_urls)
 			
 			# 下一页
 			tail = None
@@ -111,6 +111,9 @@ class BDTieba_All:
 			url = None
 			if tail:
 				url = self.FRONT_URL + tail
+				# 无法获得百度贴吧pn=100000后的html
+				if tail.find('pn=100000')>=0:
+					return None
 			else:
 				url = self.FRONT_URL
 		return None
@@ -242,15 +245,21 @@ class BDTieba(object):
 		
 	def get_str_user(self, page_html):
 		# 用户
-		pattern = re.compile('''&quot;user_name&quot;:&quot;(.*?)&quot;''', re.S)
+		pattern = re.compile('''&quot;user_name&quot;:(.*?),&quot;p''', re.S)
 		result = re.finditer(pattern, page_html)
 		if result:
 			findlist = []
 			for item in result:
 				x = item.group(1)
-				# 转码获得中文
-				x = x.encode()
-				findlist.append(x.decode('unicode-escape'))
+				# 用户可能被屏蔽
+				if operator.eq(x, 'null,'):
+					findlist.append('null')
+				else:
+					# 掐头去尾
+					x = x[6:-6]
+					# 转码获得中文
+					x = x.encode()
+					findlist.append(x.decode('unicode-escape'))
 			return findlist
 		return None
 		
@@ -547,14 +556,14 @@ class Application_ui(Frame):
 		
 	def subthread(self):
 		
-		urls = set()
+		urls = []
 		
 		bdtb_all = BDTieba_All()
 		
 		# 单贴备份
 		if self.flag_all != 1:
 			
-			urls.add(self.keyword)
+			urls.append(self.keyword)
 			self.flag_tbc = mb.askyesno('提示', '是否开始备份')
 			
 		# 全吧备份
@@ -565,14 +574,12 @@ class Application_ui(Frame):
 			new_thread_2 = threading.Thread(target=self.run_loop)
 			new_thread_2.start()
 			
-			# 获得所有url，做2次
-			for i in range(2):
-				bdtb_all.start(self.keyword)
-				
-				if(bdtb_all.posturls == None):
-					continue
-				urls.update(bdtb_all.posturls)
-				bdtb_all.posturls.clear()
+			# 获得所有url
+			bdtb_all.start(self.keyword)
+			
+			if(bdtb_all.posturls != None):
+				urls.extend(bdtb_all.posturls)
+			bdtb_all.posturls.clear()
 				
 			if self.runflag_main == False:
 				return
