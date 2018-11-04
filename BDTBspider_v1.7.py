@@ -205,6 +205,8 @@ class BDTieba(object):
 
 	# 从html代码中提取提取需要数据
 	def get_data(self, page_html):
+		if page_html == None:
+			return
 		# 楼层
 		self.postno = self.get_str_postno(page_html)
 		# 内容
