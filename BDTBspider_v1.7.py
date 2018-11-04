@@ -290,17 +290,6 @@ class BDTiebaLZL(BDTieba):
 			return int(result.group(1))
 		return None
 
-	# 从html代码中提取提取需要数据
-	def get_data(self, page_html):
-		# 内容
-		self.contents = self.get_str_contents(page_html)
-		# 时间
-		self.time = self.get_str_time(page_html)
-		# 用户
-		self.user = self.get_str_user(page_html)
-		# 图片
-		self.pic = self.get_pic(page_html)
-
 	def get_str_contents(self, page_html):
 		# 内容
 		pattern = re.compile('''<span class="lzl_content_main">(.*?)</span>''', re.S)
@@ -675,11 +664,13 @@ class Application_ui(Frame):
 								if lzl_page_index != lzl_page_num:
 									lzl_page_index += 1
 									lzl_page_html = bdtblzl.get_page_html(question_num, pid, lzl_page_index)
+									bdtblzl = BDTiebaLZL()
 						
 					# 下一页
 					if page_index != page_num:
 						page_index += 1
 						page_html = bdtb.get_page_html(question_num, self.see_lz, page_index)
+						bdtb = BDTieba()
 				
 				# 文件输出
 				leng = len(filedata.postno)
