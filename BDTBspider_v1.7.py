@@ -206,7 +206,7 @@ class BDTieba(object):
 	# 从html代码中提取提取需要数据
 	def get_data(self, page_html):
 		if page_html == None:
-			return
+			return 
 		# 楼层
 		self.postno = self.get_str_postno(page_html)
 		# 内容
@@ -294,7 +294,7 @@ class BDTiebaLZL(BDTieba):
 
 	def get_str_contents(self, page_html):
 		# 内容
-		pattern = re.compile('''<span class="lzl_content_main">(.*?)</span>''', re.S)
+		pattern = re.compile('''<span class="lzl_content_main".*?>(.*?)</span>''', re.S)
 		result = re.finditer(pattern, page_html)
 		if result:
 			findlist = []
@@ -607,6 +607,10 @@ class Application_ui(Frame):
 		
 		# 开始备份
 		outputfile = OutputFile()
+		if self.choice_save == True:
+			# 清空文件
+			outputfile.open_file(self.filepath, self.keyword, "w+")
+			outputfile.file.write("")
 		
 		for question_num in urls:
 			
@@ -678,7 +682,7 @@ class Application_ui(Frame):
 				leng = len(filedata.postno)
 				if self.choice_save == False:
 					# 分贴保存
-					outputfile.open_file(self.filepath, title)
+					outputfile.open_file(self.filepath, title, "w+")
 					outputfile.file.write("楼层No"   + "\t" +
 										  "楼中楼No" + "\t" +
 										  "内容"     + "\t" +
