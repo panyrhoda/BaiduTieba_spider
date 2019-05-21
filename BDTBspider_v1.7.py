@@ -413,13 +413,14 @@ class Application_ui(Frame):
 	def __init__(self, master=None):
 		Frame.__init__(self, master)
 		self.master.title('百度贴吧爬虫 v1.7')
-		self.master.geometry('500x300')
+		self.master.geometry('500x350')
 		self.filepath = re.sub(r"\\", "/", os.getcwd())
 		self.createWidgets()
 
 	def createWidgets(self):
 		self.TEXT1 = "贴吧名："
 		self.TEXT2 = "帖子ID："
+		self.TEXT3 = "从第__页开始："
 		self.flag_all = 1
 		
 		#row=0
@@ -459,21 +460,33 @@ class Application_ui(Frame):
 		self.btn1.grid(column=2, row=2, padx=5, pady=10, sticky=W)
 		
 		#row=3
+		#page
+		self.lab_pn = Label(self.master, text="")
+		self.lab_pn.grid(column=0, row=3, padx=5, pady=10, sticky=W)
+		
+		self.pnVar = StringVar()
+		self.pnVar.set(1)
+		self.pnEnter = Entry(self.master, width=3, textvariable=self.pnVar)
+		self.pnEnter.grid(column=1, row=3, padx=5, pady=10, sticky=W)
+		
+		self.pnEnter.grid_forget()
+		
+		#row=4
 		#see_lz
 		self.cbVar = IntVar()
 		self.cb = Checkbutton(self.master, text='是否只看楼主', variable=self.cbVar, onvalue=1, offvalue=0)
-		self.cb.grid(column=0, row=3, padx=5, pady=10, sticky=W)
+		self.cb.grid(column=0, row=4, padx=5, pady=10, sticky=W)
 		
 		#Run
 		self.btn = Button(self.master, text='Run', command=self.start)
-		self.btn.grid(column=1, row=3, padx=5, pady=10, sticky=E)
+		self.btn.grid(column=1, row=4, padx=5, pady=10, sticky=E)
 		
-		#row=4
+		#row=5
 		#Message
 		self.lab_msg = Label(self.master, height=5, width=65, wraplength =450, justify = 'left', anchor = 'sw', text="")
-		self.lab_msg.grid(column=0, row=4, rowspan=3, columnspan=2, padx=5, pady=10, sticky=W)
+		self.lab_msg.grid(column=0, row=5, rowspan=2, columnspan=2, padx=5, pady=10, sticky=W)
 		
-		#row=4
+		#row=6
 		#progressbar
 		self.progress = IntVar()
 		self.progress_max = 100
@@ -486,8 +499,12 @@ class Application_ui(Frame):
 		self.flag_all = rad_select
 		if rad_select == 1:
 			self.lab_kw.config(text=self.TEXT1)
+			self.lab_pn.config(text="")
+			self.pnEnter.grid_forget()
 		elif rad_select == 2:
 			self.lab_kw.config(text=self.TEXT2)
+			self.lab_pn.config(text=self.TEXT3)
+			self.pnEnter.grid(column=1, row=3, padx=5, pady=10, sticky=W)
 			
 	def searchhelp(self):
 		self.filepath = fd.askdirectory()
@@ -513,6 +530,7 @@ class Application_ui(Frame):
 			self.btn1.config(state='normal')
 			self.cb.config(state='normal')
 			self.btn.config(state='normal')
+			self.pnEnter.config(state='normal')
 		else:
 			self.rad1.config(state='disabled')
 			self.rad2.config(state='disabled')
@@ -521,6 +539,7 @@ class Application_ui(Frame):
 			self.btn1.config(state='disabled')
 			self.cb.config(state='disabled')
 			self.btn.config(state='disabled')
+			self.pnEnter.config(state='disabled')
 	
 	def start(self):
 		
@@ -554,11 +573,14 @@ class Application_ui(Frame):
 		# 单贴备份
 		if self.flag_all != 1:
 			
+			self.pn = int(self.pnVar.get())
 			urls.append(self.keyword)
 			self.flag_tbc = mb.askyesno('提示', '是否开始备份')
 			
 		# 全吧备份
 		else:
+			# 所有贴从第1页开始
+			self.pn = 1
 			# 进度条
 			self.looptxt = "正在获取全部帖子地址，请稍等"
 			self.runflag_loop = True
@@ -617,7 +639,7 @@ class Application_ui(Frame):
 			if self.runflag_main == False:
 				return
 			
-			page_index = 1
+			page_index = self.pn
 			bdtb = BDTieba()
 			filedata = FileData()
 			
@@ -630,7 +652,7 @@ class Application_ui(Frame):
 			page_num = bdtb.get_page_num(page_html)
 			
 			if title:
-				for i in range(page_num):
+				for i in range(page_num-page_index+1):
 					
 					bdtb.get_data(page_html)
 					
